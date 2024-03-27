@@ -4,7 +4,6 @@ import numpy as np
 class CubeMDP:
     def __init__(self):
         self.K = ['F', 'B', 'U', 'D', 'L', 'R']
-        self.planes = {'U': [self.K[0], self.K[1]], 'V': [self.K[2], self.K[3]], 'W': [self.K[4], self.K[5]]}
         self.C = ['w', 'y', 'r', 'o', 'b', 'g']
         self.d = ['+', '-']
         self.X = {'F': [], 'B': [('h', 2)], 'U': [('v', 1)], 'D': [('v', -1)], 'L': [('h', -1)], 'R': [('h', 1)]}
@@ -29,8 +28,7 @@ class CubeMDP:
             self.F['L'] = np.rot90(self.F['L'], -1)
             self.F['R'] = np.rot90(self.F['R'], 1)
     
-    def rotate(self, K, d):
-        self.reset_front(K);
+    def rotate(self, d):
         self.F['F'] = np.rot90(self.F['F'], -1 if d == '+' else 1)
         if d == '+':
             self.F['F'] = np.rot90(self.F['F'], -1)
@@ -51,6 +49,10 @@ class CubeMDP:
         for d, n in self.X[K]:
             for _ in range(n % 4):
                 self.switch(d)
+    
+    def action(self, K, d):
+        self.reset_front(K)
+        self.rotate(d)
 
     def get_reward(self):
         r = 0
@@ -69,7 +71,7 @@ class CubeMDP:
             self.rotate(K, d)
 
     def is_solved_state(self):
-        for K in self.config.values():
+        for K in self.F.values():
             if not np.all(K == K[0, 0]):
                 return False
         return True
@@ -77,4 +79,14 @@ class CubeMDP:
     def display_state(self):
         for K in self.K:
             print(f'{K} FACE')
-            print(self.cube[K])
+            print(self.F[K])
+
+cube = CubeMDP()
+
+cube.display_state()
+
+cube.action('R', '+')
+
+print('*----------------------------*')
+
+cube.display_state()
