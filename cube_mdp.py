@@ -7,6 +7,7 @@ class CubeMDP:
         self.C = ['w', 'y', 'r', 'o', 'b', 'g']
         self.d = ['+', '-']
         self.X = {'F': [], 'B': [('h', 2)], 'U': [('v', 1)], 'D': [('v', -1)], 'L': [('h', -1)], 'R': [('h', 1)]}
+        self.X_not = {'F': [], 'B': [('h', 2)], 'U': [('v', -1)], 'D': [('v', 1)], 'L': [('h', 1)], 'R': [('h', -1)]}
         self.F = {face: color * np.ones((3, 3), dtype=object) for face, color in zip(self.K, self.C)}
         self.F_T = self.F.copy()
 
@@ -29,7 +30,6 @@ class CubeMDP:
             self.F['R'] = np.rot90(self.F['R'], 1)
     
     def rotate(self, d):
-        self.F['F'] = np.rot90(self.F['F'], -1 if d == '+' else 1)
         if d == '+':
             self.F['F'] = np.rot90(self.F['F'], -1)
             temp = self.F['U'][2, :].copy()
@@ -45,14 +45,20 @@ class CubeMDP:
             self.F['D'][0, :] = self.F['L'][:, 2]
             self.F['L'][:, 2] = np.flip(temp)
 
-    def reset_front(self, K):
+    def fw_set_front(self, K):
         for d, n in self.X[K]:
             for _ in range(n % 4):
                 self.switch(d)
-    
+
+    def bw_set_front(self, K):
+        for d, n in self.X_not[K]:
+            for _ in range(n % 4):
+                self.switch(d)
+
     def action(self, K, d):
-        self.reset_front(K)
+        self.fw_set_front(K)
         self.rotate(d)
+        self.bw_set_front(K)
 
     def get_reward(self):
         r = 0
@@ -81,12 +87,21 @@ class CubeMDP:
             print(f'{K} FACE')
             print(self.F[K])
 
-cube = CubeMDP()
 
-cube.display_state()
+'''
+ *** EXAMPLE USAGE ***
 
+ cube = CubeMDP() # Init cube instance
+
+cube.display_state() # Check initial state
+
+# Perform standard RUR'U' algorithm
 cube.action('R', '+')
+cube.action('U', '+')
+cube.action('R', '-')
+cube.action('U', '-')
 
-print('*----------------------------*')
+print('*-------------------------*')
 
-cube.display_state()
+cube.display_state() # Check new state
+'''
