@@ -91,7 +91,7 @@ class CubeMDP:
 '''
  *** EXAMPLE USAGE ***
 
- cube = CubeMDP() # Init cube instance
+cube = CubeMDP() # Init cube instance
 
 cube.display_state() # Check initial state
 
