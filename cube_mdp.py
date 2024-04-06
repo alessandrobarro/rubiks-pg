@@ -74,7 +74,7 @@ class CubeMDP:
         for _ in range(t):
             K = random.choice(self.K)
             d = random.choice(self.d)
-            self.rotate(K, d)
+            self.action(K, d)
 
     def is_solved_state(self):
         for K in self.F.values():
@@ -86,7 +86,6 @@ class CubeMDP:
         for K in self.K:
             print(f'{K} FACE')
             print(self.F[K])
-
 
 '''
  *** EXAMPLE USAGE ***
