@@ -24,10 +24,12 @@ def flatten_state(state):
 def reinforce(env, policy, episodes, accuracy, diff, gamma, max_epochs=100, report_interval=100): #avg moves to solve cube is around 70, we add 30 then give up
     episode_rewards = []
     done_log = []
+    solved_log = []
     done_log_plot = np.zeros((20, 1))
     done_count = 0
     difficulty_level = 0
-    diff_threshold = 0
+    solved_count = 0
+    solved_rate = 0
 
     for episode in range(episodes):
         states, actions, rewards = [], [], []        
@@ -54,12 +56,14 @@ def reinforce(env, policy, episodes, accuracy, diff, gamma, max_epochs=100, repo
         
         if done == True:
             done_count += 1
-            diff_threshold = 0 # n of times the cube has to be solved in that diff before stepping up diff
+            solved_count = 0 # n of times the cube has to be solved in that diff before stepping up diff
             for log in done_log:
                 if log == True:
-                    diff_threshold += 1
-            if diff_threshold >= accuracy: #for 10 scramble moves
-                if difficulty_level < diff:
+                    solved_count += 1
+            solved_rate = solved_count / len(done_log)
+            solved_log.append(solved_rate * 100)
+            if solved_count >= accuracy: #using solvedrate as accuracy is too demanding for now
+                if difficulty_level <= diff:
                     difficulty_level += 1
                     done_log = []
 
@@ -74,7 +78,7 @@ def reinforce(env, policy, episodes, accuracy, diff, gamma, max_epochs=100, repo
             print(f'End of interval report at current episode:')
             print(f'-  Average Reward per Action = {avg_reward:.2f}')
             print(f'-  Difficulty level (scramble moves): {1 + difficulty_level * 2}')
-            print(f'-  Number of times cube has been solved in current difficulty: {diff_threshold}')
+            print(f'-  Solving rate in current difficulty: {solved_rate * 100}%')
 
         discounted_rewards = []
         cumulative = 0
@@ -87,7 +91,7 @@ def reinforce(env, policy, episodes, accuracy, diff, gamma, max_epochs=100, repo
             gradients = policy.get_gradients(state, action_index, advantage)
             policy.update(gradients)
 
-    policy.save_weights("final_policy_weights.npz")
+    policy.save_weights("final_policy_weights10_2lay.npz")
 
     # Plotting results
     plt.figure(figsize=(10, 5))
@@ -99,14 +103,14 @@ def reinforce(env, policy, episodes, accuracy, diff, gamma, max_epochs=100, repo
     plt.show()
 
     plt.figure(figsize=(10, 5))
-    plt.plot(done_log_plot, label='Solved count')
+    plt.plot(solved_rate * 100, label='Solved count')
     plt.title('Training Progress')
-    plt.xlabel('Difficulty')
-    plt.ylabel('Times solved')
+    plt.xlabel('Episodes')
+    plt.ylabel('Solving rate')
     plt.legend()
     plt.show()
 
 if __name__ == "__main__":
     env = CubeMDP()
     policy = PolicyNetwork(state_size=54, hidden_size=128, action_size=12)
-    reinforce(env, policy, episodes=100000, accuracy=100, diff=10, gamma=0.98)
+    reinforce(env, policy, episodes=200000, accuracy=100, diff=9, gamma=0.98)
